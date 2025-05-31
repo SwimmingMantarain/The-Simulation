@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include "window.h"
-#include "tiles.h"
+#include "world.h"
 
 int main(void)
 {
@@ -10,17 +10,39 @@ int main(void)
     // 60 FPS ;)
     SetTargetFPS(60);
 
+    int world_x = 0;
+    int world_y = 0;
+
+    Camera2D camera = { 0 };
+    camera.target = (Vector2){ world_x, world_y };
+    camera.offset = (Vector2){ SCREEN_W / 2, SCREEN_H / 2 };
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
+
     while (!WindowShouldClose())
     {
         // Check for fullscreen
         checkFullscreen();
 
-        int tile_rows = GetScreenHeight() / TILE_SIZE;
-        int tile_cols = GetScreenWidth() / TILE_SIZE;
+        if (IsKeyDown(KEY_D)) world_x += 5;
+        else if (IsKeyDown(KEY_A)) world_x -= 5;
+        else if (IsKeyDown(KEY_W)) world_y -= 5;
+        else if (IsKeyDown(KEY_S)) world_y += 5;
+
+        camera.target = (Vector2){ world_x, world_y };
+
+        // --------------------------------------
+        // DRAW
+        // --------------------------------------
 
         BeginDrawing();
             ClearBackground(BLANK);
-            draw_tiles(tile_rows, tile_cols);
+
+            BeginMode2D(camera);
+                draw_square();
+            EndMode2D();
+
+            DrawCircle(50, 100, 5.0, MAROON);
         EndDrawing();
     }
 
