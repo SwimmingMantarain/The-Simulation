@@ -1,10 +1,11 @@
 #include "raylib.h"
 #include <stddef.h>
-#include <stdlib.h>
+#include <stdint.h>
+#include "hashmap.h"
 
 #define CHUNK_SIZE 32 // 32 tiles
-#define MAX_LOADED_CHUNKS 128 // for now
 #define TILE_SIZE 32 // 32 pixels
+#define RENDER_DIST 10 // 10 chunks from player
 
 typedef struct {
     Color color;
@@ -16,33 +17,23 @@ typedef struct {
 } Chunk;
 
 typedef struct {
-    Chunk* loaded_chunks[MAX_LOADED_CHUNKS];
-    int num_loaded;
+    struct hashmap *map;
 } World;
 
-Chunk* find_chunk(World* world, int chunk_x, int chunk_y) {
-    for (int i = 0; i < world->num_loaded; i++) {
-        if (world->loaded_chunks[i]->x == chunk_x && world->loaded_chunks[i]->y == chunk_y) {
-            return world->loaded_chunks[i];
-        }
-    }
-
-    return NULL;
+uint64_t chunk_hash(const void *item, uint64_t seed0, uint64_t seed1) {
+    const Chunk *chunk = item;
+    return hashmap_sip(&chunk->x, sizeof(chunk->x), seed0, seed1) ^ hashmap_sip(&chunk->y, sizeof(chunk->y), seed0, seed1);
 }
 
-Chunk* load_chunk(World* world, int chunk_x, int chunk_y) {
-    Chunk* chunk = find_chunk(world, chunk_x, chunk_y);
-    if (chunk) return chunk;
-    if (world->num_loaded >= MAX_LOADED_CHUNKS) return NULL; // Out of space
-
-    chunk = malloc(sizeof(Chunk));
-    chunk->x = chunk_x;
-    chunk->y = chunk_y;
-
-    world->loaded_chunks[world->num_loaded++] = chunk;
-    return chunk;
+int chunk_compare(const void *a, const void *b, void *udata) {
+    const Chunk *ua = a;
+    const Chunk *ub = b;
+    return (ua->x == ub->x) && (ua->y == ub->y);
 }
 
-void draw_square() {
-    DrawRectangle(0, 0, TILE_SIZE, TILE_SIZE, GREEN);
+World create_world() {
+    World world = {
+        hashmap_new(sizeof(Chunk), 0, 0, 0, chunk_hash, chunk_compare, NULL, NULL)
+    };
+    return world;
 }

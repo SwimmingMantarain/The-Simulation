@@ -10,26 +10,27 @@ int main(void)
     // 60 FPS ;)
     SetTargetFPS(60);
 
-    int world_x = 0;
-    int world_y = 0;
+    Rectangle player = { 0, 0, 32, 32 };
 
     Camera2D camera = { 0 };
-    camera.target = (Vector2){ world_x, world_y };
+    camera.target = (Vector2){ player.x, player.y };
     camera.offset = (Vector2){ SCREEN_W / 2, SCREEN_H / 2 };
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
+
+    World world = create_world();
 
     while (!WindowShouldClose())
     {
         // Check for fullscreen
         checkFullscreen();
 
-        if (IsKeyDown(KEY_D)) world_x += 5;
-        else if (IsKeyDown(KEY_A)) world_x -= 5;
-        else if (IsKeyDown(KEY_W)) world_y -= 5;
-        else if (IsKeyDown(KEY_S)) world_y += 5;
+        if (IsKeyDown(KEY_D)) player.x += 5;
+        else if (IsKeyDown(KEY_A)) player.x -= 5;
+        else if (IsKeyDown(KEY_W)) player.y -= 5;
+        else if (IsKeyDown(KEY_S)) player.y += 5;
 
-        camera.target = (Vector2){ world_x, world_y };
+        camera.target = (Vector2){ player.x, player.y };
 
         // --------------------------------------
         // DRAW
@@ -39,10 +40,8 @@ int main(void)
             ClearBackground(BLANK);
 
             BeginMode2D(camera);
-                draw_square();
+                DrawRectangle(player.x, player.y, player.width, player.height, GREEN);
             EndMode2D();
-
-            DrawCircle(50, 100, 5.0, MAROON);
         EndDrawing();
     }
 
